@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Paragraph Edit</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+</head>
+<body>
+
+<style>
+    .btn{
+        width: 80px;
+    }
+</style>
+
+
+<div class="container">
+  <h2>Current Paragraph</h2>
+  <form>
+    <div class="form-group">
+      <textarea class="form-control" rows="20" id="paragraph" name="paragraph" readonly>{{ para }}</textarea>
+    </div>
+    <div class="form-group" align="right" id="not_editable" style="display: block;">
+        <button type="button" class="btn btn-primary" id="edit" name="edit" onclick="seteditable()">Edit</button>
+    </div>
+
+     <div class="form-group" align="right" id="editable" style="display: None;">
+        <button type="button" class="btn btn-success" id="submit" name="submit" onclick="submit_para()">Submit</button>
+        <button type="button" class="btn btn-danger" id="submit" name="submit" onclick="cancel_edit()">Cancel</button>
+         <button type="button" class="btn btn-success" id="key" name="key" onclick="add_key()">Add Key</button>
+    </div>
+
+  </form>
+</div>
+
+<script type="text/javascript">
+    var str;
+
+    function add_key() {
+        text_area = document.getElementById('paragraph');
+        new_key = "##(test_key)";
+
+        //IE support
+        if (document.selection) {
+            text_area.focus();
+            sel = document.selection.createRange();
+            sel.text = new_key;
+        }
+        //MOZILLA and others
+        else if (text_area.selectionStart || text_area.selectionStart == '0') {
+            var startPos = text_area.selectionStart;
+            var endPos = text_area.selectionEnd;
+            text_area.value = text_area.value.substring(0, startPos)
+                + new_key
+                + text_area.value.substring(endPos, text_area.value.length);
+        } else {
+            text_area.value += new_key;
+        }
+    }
+
+    function seteditable(){
+        document.getElementById('paragraph').removeAttribute('readonly');
+        edit_btn_block = document.getElementById('not_editable');
+        edit_btn_block.style.display = 'None';
+        submit_btn_block = document.getElementById('editable');
+        submit_btn_block.style.display = 'Block';
+        str = document.getElementById('paragraph').value;
+    }
+
+    function cancel_edit(para){
+        document.getElementById('paragraph').readOnly = true;
+        edit_btn_block = document.getElementById('not_editable');
+        edit_btn_block.style.display = 'Block';
+        submit_btn_block = document.getElementById('editable');
+        submit_btn_block.style.display = 'None';
+        document.getElementById('paragraph').value = str;
+    }
+
+    function submit_para(){
+        var xhttp = new XMLHttpRequest();
+        var new_str = document.getElementById('paragraph').value;
+        xhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                document.getElementById('paragraph').value = this.responseText;
+                alert("Update Success");
+                cancel_edit();
+            }
+        };
+        xhttp.open("POST", "http://127.0.0.1:5000/update/", true);
+        xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        xhttp.send('str='+new_str);
+        str = new_str;
+    }
+<!--
+    function getSelectionText() {
+        var text = "";
+        var activeEl = document.activeElement;
+        var activeElTagName = activeEl ? activeEl.tagName.toLowerCase() : null;
+        if (
+          (activeElTagName == "textarea") || (activeElTagName == "input" &&
+          /^(?:text|search|password|tel|url)$/i.test(activeEl.type)) &&
+          (typeof activeEl.selectionStart == "number")
+        ) {
+            text = activeEl.value.slice(activeEl.selectionStart, activeEl.selectionEnd);
+        } else if (window.getSelection) {
+            text = window.getSelection().toString();
+        }
+        alert(text);
+    }
+-->
+
+</script>
+
+</body>
+</html>
